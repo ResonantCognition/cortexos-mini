@@ -1,0 +1,8 @@
+[project]
+name = "cortexos-mini"
+version = "0.0.1"
+description = "Minimal layered orchestrator for alignment-seeking cognition"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+packages = ["selvarien", "eluren", "calareth", "anelara"]
