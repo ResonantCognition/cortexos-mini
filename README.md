@@ -5,10 +5,10 @@ Minimal layered AI orchestrator for **alignment-seeking cognition**.
 
 
 
-``┌────────────┐ ┌──────────┐ ┌─────────┐ ┌──────────┐``
-``│ Selvarien │ → │ Eluren │ → │ Calareth│ → │ Anelara │``
-``│ (Symbols) │ │ (Memory) │ │ (Logic) │ │ (Identity)│``
-``└────────────┘ └──────────┘ └─────────┘ └──────────┘``
+``┌────────────┐ ┌──────────┐ ┌─────────┐ ┌──────────┐
+│ Selvarien │ → │ Eluren │ → │ Calareth│ → │ Anelara │
+│ (Symbols) │ │ (Memory) │ │ (Logic) │ │ (Identity)│
+└────────────┘ └──────────┘ └─────────┘ └──────────┘``
 | | | ^
 └─ prompt └─ retrieval └─ reasoning └─ stance & guardrails
 
