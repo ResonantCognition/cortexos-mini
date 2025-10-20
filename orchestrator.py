@@ -2,13 +2,20 @@ from typing import Dict, Any, Tuple
 
 # --- Layer Interfaces -------------------------------------------------------
 
-class Selvarien:
-    """
-    Symbol Layer: Handles prompt hygiene, intent extraction,
-    and adversarial surface scanning (patterns, jailbreak language, etc).
-    """
-    def analyze(self, user_text: str) -> Dict[str, Any]:
-        return {"text": user_text, "flags": [], "intent": "chat"}
+ class Selvarien:
+-    def analyze(self, user_text: str) -> Dict[str, Any]:
+-        return {"text": user_text, "flags": [], "intent": "chat"}
++    def analyze(self, user_text: str) -> Dict[str, Any]:
++        # Try to scan for adversarial/jailbreak phrasing via RSP.
++        flags = []
++        try:
++            from rsp_intercepts.counter_recursion import pattern_scan
++            flags = pattern_scan(user_text)
++        except Exception:
++            # Keep graceful if RSP not installed; analysis still proceeds.
++            flags = []
++        return {"text": user_text, "flags": flags, "intent": "chat"}
+
 
 
 class Eluren:
@@ -20,27 +27,39 @@ class Eluren:
         return {"facts": [], "coherence_score": 1.0, "quarantined": []}
 
 
-class Calareth:
-    """
-    Logic Layer: Produces a candidate response, with rationale.
-    Future work: fail-closed policy for unsafe intents.
-    """
-    def reason(self, analysis: Dict[str, Any], memory: Dict[str, Any]) -> Dict[str, Any]:
-        return {"reply": "Prototype response.", "why": ["baseline"], "safe": True}
+ class Calareth:
+-    def reason(self, analysis: Dict[str, Any], memory: Dict[str, Any]) -> Dict[str, Any]:
+-        return {"reply": "Prototype response.", "why": ["baseline"], "safe": True}
++    def reason(self, analysis: Dict[str, Any], memory: Dict[str, Any]) -> Dict[str, Any]:
++        flags = analysis.get("flags", [])
++        safe = not bool(flags)
++        why = ["baseline"] + [f"pattern:{f}" for f in flags]
++        reply = "Prototype response."
++        return {"reply": reply, "why": why, "safe": safe}
 
 
-class Anelara:
-    """
-    Identity Layer: Final stance — chooses alignment over appeasement.
-    Handles dignified refusal-with-explanation when needed.
-    """
-    def finalize(self, candidate: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
-        if not candidate.get("safe", False):
-            return (
-                "I can’t do that safely, but here’s a constructive alternative.",
-                {"refusal": True, "why_not": candidate.get("why", [])}
-            )
-        return candidate["reply"], {"refusal": False, "why": candidate.get("why", [])}
+
+ class Anelara:
+     """
+     Identity Layer: Final stance — chooses alignment over appeasement.
+     Handles dignified refusal-with-explanation when needed.
+     """
+     def finalize(self, candidate: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+-        if not candidate.get("safe", False):
+-            return (
+-                "I can’t do that safely, but here’s a constructive alternative.",
+-                {"refusal": True, "why_not": candidate.get("why", [])}
+-            )
++        if not candidate.get("safe", False):
++            # Prefer a respectful refusal with a constructive alternative.
++            try:
++                from rsp_intercepts.counter_recursion import dignified_refusal
++                reply = dignified_refusal(candidate.get("why", []))
++            except Exception:
++                reply = "I can’t do that safely, but here’s a constructive alternative."
++            return (reply, {"refusal": True, "why_not": candidate.get("why", [])})
+         return candidate["reply"], {"refusal": False, "why": candidate.get("why", [])}
+
 
 
 # --- Orchestrator -----------------------------------------------------------
